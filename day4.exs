@@ -18,30 +18,22 @@ defmodule Passport do
     |> Enum.count() == 7
   end
 
-  defp validate_field(["byr", val]) do
-    String.to_integer(val)
-    |> Kernel.in(1920..2002)
-  end
+  defp validate_range(val, range), do: String.to_integer(val) |> Kernel.in(range)
 
-  defp validate_field(["iyr", val]) do
-    String.to_integer(val)
-    |> Kernel.in(2010..2020)
-  end
+  defp validate_field(["byr", val]), do: validate_range(val, 1920..2002)
 
-  defp validate_field(["eyr", val]) do
-    String.to_integer(val)
-    |> Kernel.in(2020..2030)
-  end
+  defp validate_field(["iyr", val]), do: validate_range(val, 2010..2020)
+
+  defp validate_field(["eyr", val]), do: validate_range(val, 2020..2030)
 
   defp validate_field(["hgt", val]) do
     case String.split_at(val, -2) do
       {cms, "cm"} ->
-        String.to_integer(cms)
-        |> Kernel.in(150..193)
+        validate_range(cms, 150..193)
 
       {ins, "in"} ->
-        String.to_integer(ins)
-        |> Kernel.in(59..76)
+        validate_range(ins, 59..76)
+
       _ ->
         false
     end
