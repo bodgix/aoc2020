@@ -1,15 +1,15 @@
 defmodule Passport do
-  def valid?(passport) when is_binary(passport) do
-    passport
-    |> parse()
-    |> validate()
-  end
-
-  defp parse(passport) do
+  def parse(passport) when is_binary(passport) do
     passport
     |> String.split([" ", ":"])
     |> Enum.chunk_every(2)
   end
+
+  def valid?(passport) when is_list(passport) do
+    passport
+    |> validate()
+  end
+
 
   defp validate(fields) do
     fields
@@ -68,6 +68,7 @@ make_passports = fn stream ->
   |> Stream.chunk_by(&(&1 != ""))
   |> Stream.filter(&(&1 != [""]))
   |> Stream.map(&Enum.join(&1, " "))
+  |> Stream.map(&Passport.parse/1)
 end
 
 input_stream.()
