@@ -21,7 +21,8 @@ defmodule Aoc2020.Day5 do
       [seat1, seat2] when seat2 == seat1 + 2 -> true
       _ -> false
     end)
-    |> (fn [seat1, _seat2] -> seat1 + 1 end).()
+    |> hd()
+    |> Kernel.+(1)
     |> IO.inspect(label: "Part2")
   end
 
