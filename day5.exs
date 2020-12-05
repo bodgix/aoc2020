@@ -25,13 +25,6 @@ defmodule Aoc2020.Day5 do
     |> IO.inspect(label: "Part2")
   end
 
-  defp input_stream() do
-    @data
-    |> File.stream!()
-    |> Stream.map(&String.trim/1)
-    |> Stream.map(&get_seat_id/1)
-  end
-
   def get_seat_id(binary_id) when is_binary(binary_id) do
     with {rest, row} <- get_row({binary_id, @rows}),
          {"", col} <-
@@ -57,6 +50,13 @@ defmodule Aoc2020.Day5 do
   def take_upper_half(low..high), do: (low + half_of_range(low..high) + 1)..high
 
   defp half_of_range(low..high), do: div(high - low, 2)
+
+  defp input_stream() do
+    @data
+    |> File.stream!()
+    |> Stream.map(&String.trim/1)
+    |> Stream.map(&get_seat_id/1)
+  end
 end
 
 Aoc2020.Day5.part1()
