@@ -17,10 +17,7 @@ defmodule Aoc2020.Day5 do
     input_stream()
     |> Enum.sort()
     |> Enum.chunk_every(2)
-    |> Enum.find(fn
-      [seat1, seat2] when seat2 == seat1 + 2 -> true
-      _ -> false
-    end)
+    |> Enum.find(fn [seat1, seat2] -> seat2 == seat1 + 2 end)
     |> hd()
     |> Kernel.+(1)
     |> IO.inspect(label: "Part2")
