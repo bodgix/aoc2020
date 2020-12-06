@@ -18,32 +18,14 @@ questions_anyone_said_yes = fn stream ->
   |> Stream.map(&MapSet.new/1)
 end
 
-make_set_for_each_person = fn stream ->
+questions_everyone_said_yes = fn stream ->
   stream
   |> Stream.map(fn group ->
     group
-    |> Enum.map(fn person ->
-      person
-      |> String.to_charlist()
-      |> MapSet.new()
-    end)
+    |> Enum.map(&String.to_charlist/1)
+    |> Enum.map(&MapSet.new/1)
+    |> Enum.reduce(&MapSet.intersection/2)
   end)
-end
-
-make_set_with_groups_common_answers = fn stream ->
-  stream
-  |> Stream.map(fn answers_from_persons ->
-    answers_from_persons
-    |> Enum.reduce(MapSet.new(?a..?z), fn answers_from_person, acc ->
-      MapSet.intersection(acc, answers_from_person)
-    end)
-  end)
-end
-
-questions_everyone_said_yes = fn stream ->
-  stream
-  |> make_set_for_each_person.()
-  |> make_set_with_groups_common_answers.()
 end
 
 count_questions = fn stream ->
@@ -61,7 +43,6 @@ input_stream.()
 input_stream.()
 |> make_groups.()
 |> questions_everyone_said_yes.()
-|> Enum.to_list()
 |> count_questions.()
 |> Enum.sum()
 |> IO.inspect(label: "Part2")
