@@ -70,7 +70,7 @@ defmodule LuggageRules do
       rule
       |> String.split(["contain", ","], trim: true)
       |> Enum.map(&String.trim/1)
-      |> Enum.map(&(String.replace(&1, ~r/ bag[s.]*/, "")))
+      |> Enum.map(&String.replace(&1, ~r/ bag[s.]*/, ""))
 
     contains =
       contains
@@ -88,16 +88,17 @@ defmodule LuggageRules do
   end
 end
 
-System.argv()
-|> hd()
-|> LuggageRules.new()
+rules =
+  System.argv()
+  |> hd()
+  |> LuggageRules.new()
+
+rules
 |> LuggageRules.can_carry("shiny gold")
 |> Enum.filter(& &1)
 |> Enum.count()
 |> IO.inspect(label: "Part1")
 
-System.argv()
-|> hd()
-|> LuggageRules.new()
+rules
 |> LuggageRules.bags_count("shiny gold")
 |> IO.inspect(label: "Part2")
