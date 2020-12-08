@@ -22,19 +22,19 @@ defmodule Computer do
   defp exit_program?(%{pc: pc, instruction_history: history} = _computer),
     do: MapSet.member?(history, pc)
 
-  defp exec(%{pc: pc} = computer, {"nop", _addr} = _instr),
-    do: computer |> inc_pc(1) |> save_instruction(pc)
+  defp exec(%{} = computer, {"nop", _addr} = _instr),
+    do: computer |> save_instruction() |> inc_pc(1)
 
-  defp exec(%{pc: pc} = computer, {"acc", addr}),
-    do: %{computer | acc: computer.acc + addr} |> inc_pc(1) |> save_instruction(pc)
+  defp exec(%{} = computer, {"acc", addr}),
+    do: %{computer | acc: computer.acc + addr} |> save_instruction() |> inc_pc(1)
 
-  defp exec(%{pc: pc} = computer, {"jmp", addr}),
-    do: computer |> inc_pc(addr) |> save_instruction(pc)
+  defp exec(%{} = computer, {"jmp", addr}),
+    do: computer |> save_instruction() |> inc_pc(addr)
 
   defp inc_pc(%{pc: pc} = computer, count), do: %{computer | pc: pc + count}
 
-  defp save_instruction(%{} = computer, instruction),
-    do: %{computer | instruction_history: MapSet.put(computer.instruction_history, instruction)}
+  defp save_instruction(%{pc: pc} = computer),
+    do: %{computer | instruction_history: MapSet.put(computer.instruction_history, pc)}
 
   defp load_program(computer, path) do
     program =
