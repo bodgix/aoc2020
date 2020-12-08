@@ -1,5 +1,11 @@
 defmodule Computer do
-  defstruct pc: 0, program: %{}, program_size: 0, acc: 0, instruction_history: MapSet.new()
+  defstruct pc: 0,
+            program: %{},
+            program_size: 0,
+            acc: 0,
+            instruction_history: [],
+            finished: false,
+            last_fixed_instruction: 0
 
   def new(path) when is_binary(path) do
     %__MODULE__{}
@@ -7,7 +13,18 @@ defmodule Computer do
     |> save_program_size()
   end
 
-  def run(%{pc: pc, program_size: program_size} = computer) when pc == program_size, do: computer
+  def fix_until_good(broken_computer, original_program) do
+    broken_computer
+    |> reset(original_program)
+    |> fix()
+    |> run()
+    |> (fn computer ->
+          (program_completed?(computer) && computer) || fix_until_good(computer, original_program)
+        end).()
+  end
+
+  def run(%{pc: pc, program_size: program_size} = computer) when pc == program_size,
+    do: %{computer | finished: true}
 
   def run(%{pc: pc, program: program} = computer) do
     with false <- exit_program?(computer),
@@ -19,8 +36,34 @@ defmodule Computer do
     end
   end
 
+  def replace_instr(%{} = computer, pc, new_instr),
+    do: %{computer | program: Map.put(computer.program, pc, new_instr)}
+
+  def reset(%{} = computer, program),
+    do: %{computer | pc: 0, instruction_history: [], acc: 0, program: program}
+
+  def program_completed?(%{finished: finished} = _computer), do: finished
+
+  def fix(%{} = computer) do
+    (computer.last_fixed_instruction + 1)..computer.program_size
+    |> Enum.reduce_while(computer, fn pc, acc ->
+      case acc.program[pc] do
+        {"nop", addr} ->
+          new_computer = acc |> replace_instr(pc, {"jmp", addr})
+          {:halt, %{new_computer | last_fixed_instruction: pc + 1}}
+
+        {"jmp", addr} ->
+          new_computer = acc |> replace_instr(pc, {"nop", addr})
+          {:halt, %{new_computer | last_fixed_instruction: pc + 1}}
+
+        _ ->
+          {:cont, acc}
+      end
+    end)
+  end
+
   defp exit_program?(%{pc: pc, instruction_history: history} = _computer),
-    do: MapSet.member?(history, pc)
+    do: pc in history
 
   defp exec(%{} = computer, {"nop", _addr} = _instr),
     do: computer |> save_instruction() |> inc_pc(1)
@@ -34,7 +77,7 @@ defmodule Computer do
   defp inc_pc(%{pc: pc} = computer, count), do: %{computer | pc: pc + count}
 
   defp save_instruction(%{pc: pc} = computer),
-    do: %{computer | instruction_history: MapSet.put(computer.instruction_history, pc)}
+    do: %{computer | instruction_history: [pc | computer.instruction_history]}
 
   defp load_program(computer, path) do
     program =
@@ -62,9 +105,19 @@ defmodule Computer do
     do: %{computer | program_size: map_size(program)}
 end
 
-System.argv()
-|> hd()
-|> Computer.new()
+computer =
+  System.argv()
+  |> hd()
+  |> Computer.new()
+
+computer
 |> Computer.run()
 |> Map.get(:acc)
 |> IO.inspect(label: "Part1")
+
+computer
+|> Computer.run()
+|> Computer.fix_until_good(computer.program)
+|> Map.get(:acc)
+|> IO.inspect(label: "Part2")
+
